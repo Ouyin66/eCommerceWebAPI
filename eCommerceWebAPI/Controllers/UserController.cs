@@ -150,9 +150,11 @@ namespace eCommerceWebAPI.Controllers
             {
                 Name = displayName,
                 Email = email,
+                Image = photoUrl,
                 ProviderId = providerID,
                 Role = 1,
-                Password = GenerateRandomPassword() // Tạo mật khẩu ngẫu nhiên
+                Password = GenerateRandomPassword(), // Tạo mật khẩu ngẫu nhiên
+                DateCreate = DateTime.Now,
             };
 
             try

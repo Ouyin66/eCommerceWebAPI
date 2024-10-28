@@ -52,7 +52,7 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/Variant/Insert")]
-        public IActionResult InsertVariant(int product, int color, int size, string picture, int quantity)
+        public IActionResult InsertVariant(int product, int color, int? size, string picture, int quantity)
         {
             // Kiểm tra sự tồn tại của sản phẩm
             Product myProduct = dbc.Products.FirstOrDefault(p => p.Id == product);
@@ -104,7 +104,7 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPut]
         [Route("/Variant/Update")]
-        public IActionResult UpdateVariant(int id, int product, int color, int size, string picture, int price, int quantity)
+        public IActionResult UpdateVariant(int id, int product, int color, int? size, string picture, int price, int quantity)
         {
             Variant variant = dbc.Variants.FirstOrDefault(v => v.Id == id);
 

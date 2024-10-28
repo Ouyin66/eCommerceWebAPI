@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace eCommerceWebAPI.ModelFromDB
 {
@@ -37,19 +38,30 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("dateCreate", TypeName = "datetime")]
         public DateTime? DateCreate { get; set; }
 
+        [JsonIgnore]
         [ForeignKey(nameof(ColorId))]
         [InverseProperty("Variants")]
         public virtual Color? Color { get; set; }
+
+        [JsonIgnore]
         [ForeignKey(nameof(ProductId))]
         [InverseProperty("Variants")]
         public virtual Product? Product { get; set; }
+
+        [JsonIgnore]
         [ForeignKey(nameof(SizeId))]
         [InverseProperty("Variants")]
         public virtual Size? Size { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(Cart.Variant))]
         public virtual ICollection<Cart> Carts { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(Feedback.Variant))]
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(ReceiptVariant.Variant))]
         public virtual ICollection<ReceiptVariant> ReceiptVariants { get; set; }
     }
