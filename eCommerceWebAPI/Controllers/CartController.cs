@@ -59,7 +59,7 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Cart/Insert")]
         public IActionResult InsertCart(int idUser, int idVariant, int quantity, decimal price)
         {
-            if (quantity < 0)
+            if (quantity < 0 && quantity > 3)
             {
                 return BadRequest(new { message = "Số lượng phải > 1 và <= 3" });
             }
@@ -68,18 +68,30 @@ namespace eCommerceWebAPI.Controllers
                 
             var inventory = dbc.Variants.FirstOrDefault(v => v.Id == idVariant).Quantity;
 
+            if (inventory == 0)
+            {
+                return BadRequest(new { message = "Sản phẩm đã hết hàng" });
+            }
+
             if (existingCart != null)
             {
-                if (existingCart.Quantity + quantity <= 3 && existingCart.Quantity < inventory) 
-                {           
-                    existingCart.Quantity += quantity;
-                    dbc.SaveChanges();
-                    return Ok(new { existingCart });
-                    
-                }
-                else
+                var totalQuantity = (existingCart.Quantity + quantity);
+                //if (inventory == 0)
+                //{
+                //    return BadRequest(new { message = "Sản phẩm đã hết hàng" });
+                //}
+
+                if (totalQuantity <= 3) 
                 {
-                    return BadRequest(new { message = "Đã có sản phẩm này trong giỏ và đã đạt số lượng tối đa" });
+                    if (existingCart.Quantity <= inventory && totalQuantity <= inventory)
+                    {
+                        existingCart.Quantity = totalQuantity;
+                        dbc.SaveChanges();
+                        return Ok(new { existingCart });
+                    } else
+                    {
+                        return BadRequest(new { message = "Sản phẩm đã số lượng tối đa của số lượng" });
+                    }
                 }
             }
 
@@ -87,7 +99,7 @@ namespace eCommerceWebAPI.Controllers
             {
                 UserId = idUser,
                 VariantId = idVariant,
-                Quantity = quantity > 3 ? (quantity > inventory && inventory <= 3 && inventory > 0) ? inventory : 3 : quantity > 0 ? quantity : 1,
+                Quantity = quantity <= inventory && inventory != 0 ? quantity : inventory,
                 Price = price,
             };
             
