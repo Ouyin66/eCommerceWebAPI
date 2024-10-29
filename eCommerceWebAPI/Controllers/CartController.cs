@@ -45,104 +45,130 @@ namespace eCommerceWebAPI.Controllers
                 .Where(c => c.UserId == userId)
                 .ToList();
 
-            if (carts == null || !carts.Any())
-            {
-                return NotFound(new { message = "Không tìm sản phẩm này trong giỏ" });
-            }
-
-            // Lấy danh sách các đối tượng Cart dựa trên danh sách cartIds duy nhất        
+            //if (carts == null || !carts.Any())
+            //{
+            //    return NotFound(new { message = "Không có sản phẩm nào trong giỏ" });
+            //}    
 
             return Ok(new { carts });
         }
 
         [HttpPost]
         [Route("/Cart/Insert")]
-        public IActionResult InsertCart(int idUser, int idVariant, int quantity, decimal price)
+        public IActionResult InsertCart(int userId, int variantId, int quantity, decimal price)
         {
-            if (quantity < 0 && quantity > 3)
+            // Kiểm tra giới hạn số lượng
+            if (quantity <= 0 || quantity > 3)
             {
-                return BadRequest(new { message = "Số lượng phải > 1 và <= 3" });
+                return BadRequest(new { message = "Số lượng phải > 0 và <= 3" });
             }
 
-            Cart existingCart = dbc.Carts.FirstOrDefault(c => c.UserId == idUser && c.VariantId == idVariant);
-                
-            var inventory = dbc.Variants.FirstOrDefault(v => v.Id == idVariant).Quantity;
-
-            if (inventory == 0)
+            // Kiểm tra tồn kho
+            var variant = dbc.Variants.FirstOrDefault(v => v.Id == variantId);
+            if (variant == null || variant.Quantity == 0)
             {
                 return BadRequest(new { message = "Sản phẩm đã hết hàng" });
             }
 
+            var inventory = variant.Quantity;
+
+            // Kiểm tra nếu sản phẩm đã có trong giỏ hàng
+            Cart existingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
+
             if (existingCart != null)
             {
-                var totalQuantity = (existingCart.Quantity + quantity);
-                //if (inventory == 0)
-                //{
-                //    return BadRequest(new { message = "Sản phẩm đã hết hàng" });
-                //}
+                var totalQuantity = existingCart.Quantity + quantity;
 
-                if (totalQuantity <= 3) 
+                if (totalQuantity > 3)
                 {
-                    if (existingCart.Quantity <= inventory && totalQuantity <= inventory)
-                    {
-                        existingCart.Quantity = totalQuantity;
-                        dbc.SaveChanges();
-                        return Ok(new { existingCart });
-                    } else
-                    {
-                        return BadRequest(new { message = "Sản phẩm đã số lượng tối đa của số lượng" });
-                    }
+                    return BadRequest(new { message = "Sản phẩm đã đạt số lượng tối đa trong giỏ hàng" });
                 }
+                else if (totalQuantity > inventory)
+                {
+                    return BadRequest(new { message = "Số lượng yêu cầu vượt quá hàng trong kho" });
+                }
+
+                // Cập nhật số lượng nếu nằm trong giới hạn
+                existingCart.Quantity = totalQuantity;
+                dbc.SaveChanges();
+                return Ok(new { message = "Đã thêm sản phẩm vào giỏ", existingCart });
             }
 
+            // Thêm sản phẩm mới vào giỏ hàng: Kiểm tra nếu số lượng yêu cầu không vượt quá tồn kho
+            if (quantity > inventory)
+            {
+                return BadRequest(new { message = "Số lượng yêu cầu vượt quá hàng trong kho" });
+            }
+
+            // Thêm mới vào giỏ hàng
             Cart cart = new Cart()
             {
-                UserId = idUser,
-                VariantId = idVariant,
-                Quantity = quantity <= inventory && inventory != 0 ? quantity : inventory,
+                UserId = userId,
+                VariantId = variantId,
+                Quantity = quantity,
                 Price = price,
             };
-            
 
             dbc.Carts.Add(cart);
             dbc.SaveChanges();
-            return Ok(new { cart });
+            return Ok(new { message = "Đã thêm sản phẩm vào giỏ", cart });
         }
 
         [HttpPut]
         [Route("/Cart/Update")]
-        public IActionResult UpdateCart(int id, int idUser, int idVariant, int quantity, decimal price)
+        public IActionResult UpdateCart(int id, int userId, int variantId, int quantity, decimal price)
         {
-            Cart existingCart = dbc.Carts.FirstOrDefault(c => c.Id == id);
+            if (quantity < 0)
+            {
+                return BadRequest(new { message = "Số lượng không hợp lệ" });
+            }
+            // Tìm kiếm sản phẩm trong giỏ hàng
+            Cart searchingCart = dbc.Carts.FirstOrDefault(c => c.Id == id);
+            var variant = dbc.Variants.FirstOrDefault(v => v.Id == variantId);
 
-            var inventory = dbc.Variants.FirstOrDefault(v => v.Id == idVariant).Quantity;
+            // Kiểm tra tồn tại của sản phẩm và tồn kho
+            if (searchingCart == null)
+            {
+                return BadRequest(new { message = "Sản phẩm không tồn tại trong giỏ hàng" });
+            }
+            if (variant == null || variant.Quantity == 0)
+            {
+                return BadRequest(new { message = "Sản phẩm đã hết hàng" });
+            }
+
+            var inventory = variant.Quantity;
+
+            // Kiểm tra giới hạn số lượng và tồn kho
+            if (quantity > 3)
+            {
+                return BadRequest(new { message = "Sản phẩm đã đạt số lượng tối đa trong giỏ hàng" });
+            }
+            else if (quantity > inventory)
+            {
+                return BadRequest(new { message = "Số lượng yêu cầu vượt quá hàng trong kho" });
+            }
+
+            var existingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
 
             if (existingCart != null)
             {
-                if (existingCart.Quantity < 3 && existingCart.Quantity < inventory)
+                var total = quantity + existingCart.Quantity;
+                if (total <= 3 && total <= variant.Quantity)
                 {
-                    existingCart.Quantity += quantity;
+                    existingCart.Quantity = total;
+                    dbc.Carts.Remove(searchingCart);
                     dbc.SaveChanges();
-                    return Ok(new { existingCart });
-
-                }
-                else
-                {
-                    return BadRequest(new { message = "Đã tồn tại sản phẩm này trong giỏ" });
+                    return Ok(new { message = "Cập nhật thành công", searchingCart });
                 }
             }
 
-            Cart cart = new Cart()
-            {
-                UserId = idUser,
-                VariantId = idVariant,
-                Quantity = quantity > 3 ? (quantity > inventory && inventory <= 3 && inventory > 0) ? inventory : 3 : quantity,
-                Price = price,
-            };
-
-            dbc.Carts.Update(cart);
+            // Cập nhật số lượng và giá
+            searchingCart.VariantId = variantId;
+            searchingCart.Quantity = quantity;
+            searchingCart.Price = price; // Cập nhật giá nếu cần
             dbc.SaveChanges();
-            return Ok(new { cart });
+
+            return Ok(new { message = "Cập nhật thành công", searchingCart });
         }
 
         [HttpDelete]
