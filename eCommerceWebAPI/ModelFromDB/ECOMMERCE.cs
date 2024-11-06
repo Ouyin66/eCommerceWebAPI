@@ -27,6 +27,7 @@ namespace eCommerceWebAPI.ModelFromDB
         public virtual DbSet<Size> Sizes { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Variant> Variants { get; set; } = null!;
+        public virtual DbSet<Location> Locations { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -39,6 +40,14 @@ namespace eCommerceWebAPI.ModelFromDB
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Relationship configurations
+            modelBuilder.Entity<Location>(entity =>
+            {
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Locations)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_Location_User");
+            });
+
             modelBuilder.Entity<Cart>(entity =>
             {
                 entity.HasOne(d => d.User)

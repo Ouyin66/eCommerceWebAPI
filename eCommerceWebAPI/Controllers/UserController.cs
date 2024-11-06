@@ -94,6 +94,7 @@ namespace eCommerceWebAPI.Controllers
             //user.Password = HashPassword(password);
             user.Password = password;
             user.Role = 1;
+            user.DateCreate = DateTime.Now;
             try
             {
                 dbc.Users.Add(user);
@@ -195,7 +196,7 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/User/Insert")]
-        public IActionResult InsertUser(int id, string email, string password, string name, string location, string phone, string image, byte gender, byte role, byte state)
+        public IActionResult InsertUser(int id, string email, string password, string name, string phone, string image, byte gender, byte role, byte state)
         {
             // Kiểm tra xem email đã tồn tại hay chưa
             if (dbc.Users.Any(u => u.Email == email))
@@ -208,7 +209,6 @@ namespace eCommerceWebAPI.Controllers
                 Name = name,
                 Email = email,
                 Password = password,
-                Location = location,
                 Phone = phone,
                 Image = image,
                 Gender = gender,
@@ -230,8 +230,8 @@ namespace eCommerceWebAPI.Controllers
         }
 
         [HttpPut]
-        [Route("/User/Update")]
-        public IActionResult UpdateUser(int id, string email, string password, string name, string location, string phone, string image, byte gender, byte role, byte state)
+        [Route("/User/ChangePassword")]
+        public IActionResult UpdateUser(int id, string newPassword)
         {
             // Tìm người dùng dựa trên ID
             User user = dbc.Users.FirstOrDefault(u => u.Id == id);
@@ -242,17 +242,70 @@ namespace eCommerceWebAPI.Controllers
                 return NotFound(new { message = "Người dùng không tồn tại" });
             }
 
+            user.Password = newPassword ?? user.Password;
+
+            // Lưu thay đổi
+            dbc.Users.Update(user);
+            dbc.SaveChanges();
+
+            return Ok(new { message = "Mật khẩu đã được thay đổi", user });
+        }
+
+        [HttpPut]
+        [Route("/User/UpdateInformation")]
+        public IActionResult UpdateInformation(int id, string? name, string? phone, string? image, byte? gender)
+        {
+            // Tìm người dùng dựa trên ID
+            User user = dbc.Users.FirstOrDefault(u => u.Id == id);
+
+            // Kiểm tra nếu người dùng không tồn tại
+            if (user == null)
+            {
+
+                return NotFound(new { message = "Người dùng không tồn tại" });
+            }
+
             // Cập nhật các thông tin của người dùng
             user.Name = name ?? user.Name;
-            user.Email = email ?? user.Email;
+            user.Phone = phone ?? user.Phone;
+            user.Image = image ?? user.Image;
+            user.Gender = gender ?? null;
 
-            // Kiểm tra nếu có thay đổi mật khẩu, băm mật khẩu trước khi lưu
-            //if (!string.IsNullOrEmpty(password))
-            //{
-            //    user.Password = HashPassword(password); // Băm mật khẩu
-            //}
+            // Lưu thay đổi
+            dbc.Users.Update(user);
+            dbc.SaveChanges();
+
+            return Ok(new { message = "Người dùng đã được cập nhật thành công", user });
+        }
+
+        [HttpPut]
+        [Route("/User/Update")]
+        public IActionResult UpdateUser(int id, string email, string password, string name, string phone, string image, byte gender, byte role, byte state)
+        {
+            // Tìm người dùng dựa trên ID
+            User user = dbc.Users.FirstOrDefault(u => u.Id == id);
+
+            // Kiểm tra nếu người dùng không tồn tại
+            if (user == null)
+            {
+                return NotFound(new { message = "Người dùng không tồn tại" });
+            }
+
+            var existingUser = dbc.Users.FirstOrDefault(u => u.Email == email);
+            if (existingUser != null)
+            {
+                if (existingUser.Id == user.Id)
+                {
+                    user.Email = email ?? user.Email;
+                } else
+                {
+                    return BadRequest(new { message = "Đã tồn tại email này" });
+                }            
+            }
+
+            // Cập nhật các thông tin của người dùng
+            user.Name = name ?? user.Name;
             user.Password = password ?? user.Password;
-            user.Location = location ?? user.Location;
             user.Phone = phone ?? user.Phone;
             user.Image = image ?? user.Image;
             user.Gender = gender;

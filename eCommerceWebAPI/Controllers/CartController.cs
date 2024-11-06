@@ -148,19 +148,22 @@ namespace eCommerceWebAPI.Controllers
                 return BadRequest(new { message = "Số lượng yêu cầu vượt quá hàng trong kho" });
             }
 
-            var existingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
-
-            if (existingCart != null)
+            if (searchingCart.VariantId != variantId)
             {
-                var total = quantity + existingCart.Quantity;
-                if (total <= 3 && total <= variant.Quantity)
+                var existingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
+
+                if (existingCart != null)
                 {
-                    existingCart.Quantity = total;
-                    dbc.Carts.Remove(searchingCart);
-                    dbc.SaveChanges();
-                    return Ok(new { message = "Cập nhật thành công", searchingCart });
+                    var total = quantity + existingCart.Quantity;
+                    if (total <= 3 && total <= variant.Quantity && existingCart.Id != id)
+                    {
+                        existingCart.Quantity = total;
+                        dbc.Carts.Remove(searchingCart);
+                        dbc.SaveChanges();
+                        return Ok(new { message = "Cập nhật thành công", cart = existingCart });
+                    }
                 }
-            }
+            }          
 
             // Cập nhật số lượng và giá
             searchingCart.VariantId = variantId;
@@ -168,7 +171,7 @@ namespace eCommerceWebAPI.Controllers
             searchingCart.Price = price; // Cập nhật giá nếu cần
             dbc.SaveChanges();
 
-            return Ok(new { message = "Cập nhật thành công", searchingCart });
+            return Ok(new { message = "Cập nhật thành công", cart = searchingCart });
         }
 
         [HttpDelete]

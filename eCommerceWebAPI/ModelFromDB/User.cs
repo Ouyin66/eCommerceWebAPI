@@ -17,6 +17,7 @@ namespace eCommerceWebAPI.ModelFromDB
             Messengers = new HashSet<Messenger>();
             Receipts = new HashSet<Receipt>();
             Products = new HashSet<Product>();
+            Locations = new HashSet<Location>();
         }
 
         [Key]
@@ -31,9 +32,6 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("name")]
         [StringLength(100)]
         public string? Name { get; set; }
-        [Column("location")]
-        [StringLength(255)]
-        public string? Location { get; set; }
         [Column("phone")]
         [StringLength(10)]
         public string? Phone { get; set; }
@@ -59,6 +57,8 @@ namespace eCommerceWebAPI.ModelFromDB
         public virtual ICollection<Messenger> Messengers { get; set; }
         [InverseProperty(nameof(Receipt.User))]
         public virtual ICollection<Receipt> Receipts { get; set; }
+        [InverseProperty(nameof(Location.User))]
+        public virtual ICollection<Location> Locations { get; set; }
 
         [ForeignKey("UserId")]
         [InverseProperty(nameof(Product.Users))]
