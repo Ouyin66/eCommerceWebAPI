@@ -35,6 +35,8 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("phone")]
         [StringLength(10)]
         public string? Phone { get; set; }
+        [Column("defaultLocationId")]
+        public int? DefaultLocationId { get; set; }
         [Column("image")]
         public string? Image { get; set; }
         [Column("gender")]
@@ -59,6 +61,8 @@ namespace eCommerceWebAPI.ModelFromDB
         public virtual ICollection<Receipt> Receipts { get; set; }
         [InverseProperty(nameof(Location.User))]
         public virtual ICollection<Location> Locations { get; set; }
+
+        public virtual Location? DefaultLocation { get; set; }
 
         [ForeignKey("UserId")]
         [InverseProperty(nameof(Product.Users))]

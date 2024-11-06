@@ -6,6 +6,7 @@ using System.Net;
 using Org.BouncyCastle.Crypto.Generators;
 using System.Text;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerceWebAPI.Controllers
 {
@@ -80,7 +81,7 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/User/Register")]
-        public IActionResult Register(string email, string password, string name)
+        public IActionResult Register(string email, string phone, string password, string name)
         {
             var existingUser = dbc.Users.FirstOrDefault(u => u.Email == email);
             if (existingUser != null)
@@ -91,6 +92,7 @@ namespace eCommerceWebAPI.Controllers
             User user = new User();
             user.Name = name;
             user.Email = email;
+            user.Phone = phone;
             //user.Password = HashPassword(password);
             user.Password = password;
             user.Role = 1;
@@ -276,7 +278,7 @@ namespace eCommerceWebAPI.Controllers
             dbc.SaveChanges();
 
             return Ok(new { message = "Người dùng đã được cập nhật thành công", user });
-        }
+        }      
 
         [HttpPut]
         [Route("/User/Update")]

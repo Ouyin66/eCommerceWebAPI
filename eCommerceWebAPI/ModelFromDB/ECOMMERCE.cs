@@ -39,7 +39,14 @@ namespace eCommerceWebAPI.ModelFromDB
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Relationship configurations
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasOne(d => d.DefaultLocation)
+                    .WithMany()
+                    .HasForeignKey(d => d.DefaultLocationId)
+                    .HasConstraintName("FK_User_Location");
+            });
+
             modelBuilder.Entity<Location>(entity =>
             {
                 entity.HasOne(d => d.User)

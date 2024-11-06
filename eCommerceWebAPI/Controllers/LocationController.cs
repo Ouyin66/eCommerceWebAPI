@@ -79,6 +79,29 @@ namespace eCommerceWebAPI.Controllers
             return Ok(new { message = "Thêm địa chỉ thành công", location });
         }
 
+        [HttpPut("/Location/SetDefaultLocation")]
+        public async Task<IActionResult> SetDefaultLocation(int? locationId)
+        {
+            var location = await dbc.Locations.FindAsync(locationId);
+            if (location == null)
+            {
+                return NotFound(new {message = "Không tìm thấy địa điểm"});
+            }
+
+            var user = await dbc.Users.FindAsync(location.UserId);
+            if (user == null)
+            {
+                return NotFound(new { message = "Không tìm thấy người dùng" });
+            }
+
+            // Cập nhật các thuộc tính, bao gồm defaultLocationId
+            user.DefaultLocationId = location.Id;
+            // Các cập nhật khác
+
+            await dbc.SaveChangesAsync();
+            return Ok(new { message = "Đặt địa chỉ thành công" });
+        }
+
         [HttpPut]
         [Route("/Location/Update")]
         public IActionResult UpdateLocation(int id, string name, string address)
@@ -115,6 +138,17 @@ namespace eCommerceWebAPI.Controllers
             if (location == null)
             {
                 return NotFound(new { message = "Không tìm thấy địa chỉ với id này" });
+            }
+            var user = dbc.Users.FirstOrDefault(u => u.Id == location.UserId);
+            if (user != null)
+            {
+                if (user.DefaultLocationId == location.Id)
+                {
+                    return BadRequest(new { message = "Hãy thiết lập địa chỉ mặc định khác trước khi xóa" });
+                }
+            } else
+            {
+                return NotFound(new { message = "Không tìm thấy người dùng của địa điểm này" });
             }
 
             dbc.Locations.Remove(location);

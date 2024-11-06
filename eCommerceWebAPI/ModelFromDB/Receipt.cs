@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace eCommerceWebAPI.ModelFromDB
 {
@@ -38,10 +40,14 @@ namespace eCommerceWebAPI.ModelFromDB
         public DateTime? DateCreate { get; set; }
 
         [ForeignKey(nameof(UserId))]
+        [JsonIgnore]
         [InverseProperty("Receipts")]
         public virtual User? User { get; set; }
+
         [InverseProperty(nameof(Feedback.Receipt))]
+        [JsonIgnore]
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+
         [InverseProperty(nameof(ReceiptVariant.Receipt))]
         public virtual ICollection<ReceiptVariant> ReceiptVariants { get; set; }
     }
