@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace eCommerceWebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class OrderStatusHistoryController : ControllerBase
     {

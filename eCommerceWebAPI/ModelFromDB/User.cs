@@ -67,5 +67,8 @@ namespace eCommerceWebAPI.ModelFromDB
         [ForeignKey("UserId")]
         [InverseProperty(nameof(Product.Users))]
         public virtual ICollection<Product> Products { get; set; }
+
+        [InverseProperty(nameof(Notification.MyUser))]
+        public virtual ICollection<Notification> Notifications { get; set; }
     }
 }

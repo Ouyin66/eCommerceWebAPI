@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace eCommerceWebAPI.ModelFromDB
 {
@@ -23,7 +25,7 @@ namespace eCommerceWebAPI.ModelFromDB
         public DateTime? TimeStamp { get; set; }
 
         [ForeignKey(nameof(ReceiptId))]
-        [InverseProperty("Receipts")]
-        public virtual Receipt? Receipt { get; set; }
+        [InverseProperty(nameof(Receipt.OrderStatusHistories))]
+        public virtual Receipt? MyReceipt { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace eCommerceWebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class SizeController : ControllerBase
     {

@@ -13,10 +13,10 @@ namespace eCommerceWebAPI.ModelFromDB
     {
         [Key]
         [Column("variantID")]
-        public int VariantId { get; set; }
+        public int? VariantId { get; set; }
         [Key]
         [Column("receiptID")]
-        public int ReceiptId { get; set; }
+        public int? ReceiptId { get; set; }
         [Column("quantity")]
         public int? Quantity { get; set; }
         [Column("price", TypeName = "decimal(18, 2)")]
@@ -25,11 +25,11 @@ namespace eCommerceWebAPI.ModelFromDB
         [ForeignKey(nameof(ReceiptId))]
         [JsonIgnore]
         [InverseProperty("ReceiptVariants")]
-        public virtual Receipt Receipt { get; set; } = null!;
+        public virtual Receipt? Receipt { get; set; } = null!;
 
         [ForeignKey(nameof(VariantId))]
         [JsonIgnore]
         [InverseProperty("ReceiptVariants")]
-        public virtual Variant Variant { get; set; } = null!;
+        public virtual Variant? Variant { get; set; } = null!;
     }
 }

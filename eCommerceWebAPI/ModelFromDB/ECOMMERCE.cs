@@ -28,6 +28,7 @@ namespace eCommerceWebAPI.ModelFromDB
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Variant> Variants { get; set; } = null!;
         public virtual DbSet<Location> Locations { get; set; } = null!;
+        public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<OrderStatusHistory> OrderStatusHistories { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -42,7 +43,7 @@ namespace eCommerceWebAPI.ModelFromDB
         {
             modelBuilder.Entity<OrderStatusHistory>(entity =>
             {
-                entity.HasOne(d => d.Receipt)
+                entity.HasOne(d => d.MyReceipt)
                     .WithMany(r => r.OrderStatusHistories)
                     .HasForeignKey(d => d.ReceiptId)
                     .HasConstraintName("FK_OrderStatusHistory_Receipt");
@@ -54,6 +55,14 @@ namespace eCommerceWebAPI.ModelFromDB
                     .WithMany()
                     .HasForeignKey(d => d.DefaultLocationId)
                     .HasConstraintName("FK_User_Location");
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasOne(d => d.MyUser)
+                      .WithMany(p => p.Notifications)
+                      .HasForeignKey(d => d.UserId)
+                      .HasConstraintName("FK_Notification_User");
             });
 
             modelBuilder.Entity<Location>(entity =>

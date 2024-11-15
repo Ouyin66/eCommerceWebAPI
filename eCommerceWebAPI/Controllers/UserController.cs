@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using System.Text;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace eCommerceWebAPI.Controllers
 {
@@ -77,6 +78,34 @@ namespace eCommerceWebAPI.Controllers
 
 
             return Ok(new { user });
+        }
+
+        [HttpGet]
+        [Route("/Users/VariantsPendingFeedback")]
+        public async Task<IActionResult> GetVariantsPendingFeedbackForUser(int userId)
+        {
+            // Lấy tất cả các Receipt của người dùng
+            var receipts = await dbc.Receipts
+                                     .Where(r => r.UserId == userId)
+                                     .ToListAsync();
+
+            // Lấy tất cả các ReceiptVariant cần thiết
+            var variantsInReceipts = await (from rv in dbc.ReceiptVariants
+                                            join r in receipts on rv.ReceiptId equals r.Id
+                                            select rv)
+                                .ToListAsync();
+
+            // Lấy tất cả các Feedback đã tồn tại cho các Receipt của người dùng
+            var feedbacks = await dbc.Feedbacks.Where(f => receipts.Any(r => r.Id == f.ReceiptId))
+                .Select(f => new { f.ReceiptId, f.VariantId })
+                .ToListAsync();
+
+            // Lọc các Variant chưa có feedback
+            var variantsPendingFeedback = variantsInReceipts.Where(rv => !feedbacks.Any(f => f.ReceiptId == rv.ReceiptId && f.VariantId == rv.VariantId))
+                .Select(rv => rv.Variant).ToList(); 
+
+            // Trả về danh sách các Variant cần feedback
+            return Ok(variantsPendingFeedback);
         }
 
         [HttpPost]
