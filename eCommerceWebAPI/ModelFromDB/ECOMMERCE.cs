@@ -28,6 +28,7 @@ namespace eCommerceWebAPI.ModelFromDB
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<Variant> Variants { get; set; } = null!;
         public virtual DbSet<Location> Locations { get; set; } = null!;
+        public virtual DbSet<OrderStatusHistory> OrderStatusHistories { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -39,6 +40,14 @@ namespace eCommerceWebAPI.ModelFromDB
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<OrderStatusHistory>(entity =>
+            {
+                entity.HasOne(d => d.Receipt)
+                    .WithMany(r => r.OrderStatusHistories)
+                    .HasForeignKey(d => d.ReceiptId)
+                    .HasConstraintName("FK_OrderStatusHistory_Receipt");
+            });
+
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasOne(d => d.DefaultLocation)

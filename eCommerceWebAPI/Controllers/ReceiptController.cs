@@ -16,22 +16,54 @@ namespace eCommerceWebAPI.Controllers
             dbc = db;
         }
 
+        [HttpGet]
+        [Route("/Receipts/ListByUserId")]
+        public IActionResult GetReceiptnByUserId(int userId)
+        {
+            List<Receipt> receipts = dbc.Receipts.Where(r => r.UserId == userId).ToList();
+
+            //if (locations == null || !locations.Any())
+            //{
+            //    return Ok(new { message = "Không Có địa điểm của người dùng", locations });
+            //}
+
+            return Ok(new { receipts });
+        }
+
         [HttpPost]
         [Route("/Receipts/Insert")]
         public async Task<IActionResult> CreateReceiptWithVariants([FromBody] Receipt receipt)
         {
             if (receipt == null) return BadRequest("Invalid data.");
 
-            // Add the Receipt to the context
+            
             dbc.Receipts.Add(receipt);
 
-            // Ensure each ReceiptVariant is linked to the Receipt's ID after it's generated
+            
             foreach (var variant in receipt.ReceiptVariants)
             {
-                variant.Receipt = receipt; // Set the Receipt reference for each variant
+                variant.Receipt = receipt; 
             }
 
-            // Save all changes in a single transaction
+            
+            await dbc.SaveChangesAsync();
+
+            
+            int receiptId = receipt.Id;
+
+            
+            var orderStatusHistory = new OrderStatusHistory
+            {
+                ReceiptId = receiptId,
+                State = 0,
+                Notes = "New order created",
+                TimeStamp = DateTime.Now
+            };
+
+            // Add OrderStatusHistory to the context
+            dbc.OrderStatusHistories.Add(orderStatusHistory);
+
+            // Save changes to include the new OrderStatusHistory
             await dbc.SaveChangesAsync();
 
             return Ok(receipt);

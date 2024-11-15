@@ -34,8 +34,8 @@ namespace eCommerceWebAPI.ModelFromDB
         public decimal? Total { get; set; }
         [Column("paymentMethod")]
         public byte? PaymentMethod { get; set; }
-        [Column("state")]
-        public byte? State { get; set; }
+        [Column("interest")]
+        public byte? Interest { get; set; }
         [Column("dateCreate", TypeName = "datetime")]
         public DateTime? DateCreate { get; set; }
 
@@ -47,6 +47,8 @@ namespace eCommerceWebAPI.ModelFromDB
         [InverseProperty(nameof(Feedback.Receipt))]
         [JsonIgnore]
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+
+        public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; }
 
         [InverseProperty(nameof(ReceiptVariant.Receipt))]
         public virtual ICollection<ReceiptVariant> ReceiptVariants { get; set; }
