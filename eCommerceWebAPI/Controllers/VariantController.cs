@@ -19,6 +19,8 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Variant/List")]
         public IActionResult GetList()
         {
+            List<Variant> variants = dbc.Variants.ToList();         
+
             return Ok(new { dataa = dbc.Variants.ToList() });
         }
 
@@ -32,6 +34,10 @@ namespace eCommerceWebAPI.Controllers
             {
                 return NotFound(new { message = "Không tìm thấy sản phẩm biến thể" });
             }
+
+            variant.Color = dbc.Colors.FirstOrDefault(c => c.Id == variant.ColorId);
+            variant.Size = dbc.Sizes.FirstOrDefault(s => s.Id == variant.SizeId);
+            variant.Product = dbc.Products.FirstOrDefault(p => p.Id == variant.ProductId);
 
             return Ok(new { variant });
         }

@@ -17,7 +17,7 @@ namespace eCommerceWebAPI.Controllers
         }
 
         [HttpGet]
-        [Route("/Receipts/ListByUserId")]
+        [Route("/Receipt/ListByUserId")]
         public IActionResult GetReceiptnByUserId(int userId)
         {
             List<Receipt> receipts = dbc.Receipts
@@ -25,11 +25,50 @@ namespace eCommerceWebAPI.Controllers
                                 .OrderByDescending(r => r.DateCreate) // Sắp xếp giảm dần theo ngày tạo
                                 .ToList();
 
+            foreach (var receipt in receipts)
+            {
+                List<ReceiptVariant> lstVariant = dbc.ReceiptVariants.Where(v => v.ReceiptId == receipt.Id).ToList();
+                receipt.ReceiptVariants = lstVariant;
+
+                List<OrderStatusHistory> lstStatus = dbc.OrderStatusHistories.Where(s => s.ReceiptId == receipt.Id).ToList();
+                
+                // Nếu tồn tại trạng thái hủy đơn hàng thì ưu tiên lấy trạng thái này
+                if (lstStatus.Where(s => s.State == 0) != null)
+                {
+                    lstStatus = lstStatus.Where(s => s.State == 0).ToList();
+                } else
+                {
+                    var maxState = lstStatus.Max(s => s.State);
+                    lstStatus = lstStatus.Where(s => s.State == maxState).ToList();
+                }       
+                receipt.OrderStatusHistories = lstStatus;
+            }
+
             return Ok(new { receipts });
         }
 
+        [HttpGet]
+        [Route("/Receipt/Get")]
+        public IActionResult GetReceipt(int receiptId)
+        {
+            Receipt receipt = dbc.Receipts.FirstOrDefault(r => r.Id == receiptId);
+
+            if (receipt == null)
+            {
+                return NotFound(new { message = "Không tìm thấy hóa đơn này" });
+            }
+
+            List<ReceiptVariant> lstVariant = dbc.ReceiptVariants.Where(v => v.ReceiptId == receipt.Id).ToList();
+            receipt.ReceiptVariants = lstVariant;
+
+            List<OrderStatusHistory> lstStatus = dbc.OrderStatusHistories.Where(s => s.ReceiptId == receipt.Id).ToList();
+            receipt.OrderStatusHistories = lstStatus;
+
+            return Ok(new { receipt });
+        }
+
         [HttpPost]
-        [Route("/Receipts/Insert")]
+        [Route("/Receipt/Insert")]
         public async Task<IActionResult> CreateReceiptWithVariants([FromBody] Receipt receipt)
         {
             if (receipt == null) return BadRequest("Invalid data.");
@@ -61,6 +100,8 @@ namespace eCommerceWebAPI.Controllers
                 }
 
                 updateVariant.Quantity -= variant.Quantity;
+                var product = dbc.Products.FirstOrDefault(p => p.Id == updateVariant.ProductId);
+                product.Amount -= variant.Quantity;
 
                 // Xóa mục trong bảng Cart dựa trên userId và variantId
                 var cartItem = dbc.Carts.FirstOrDefault(c => c.UserId == receipt.UserId && c.VariantId == variant.VariantId);
@@ -89,7 +130,7 @@ namespace eCommerceWebAPI.Controllers
             Notification notification = new Notification
             {
                 UserId = receipt.UserId,
-                Message = $"Bạn vừa tạo thành công một đơn hàng HD{receipt.Id,10}",
+                Message = $"Bạn vừa tạo thành công một đơn hàng HD{receipt.Id:D10}",
                 Type = "Receipt",
                 ReferenceId = receiptId,
                 DateCreated = DateTime.Now,
@@ -100,6 +141,24 @@ namespace eCommerceWebAPI.Controllers
             await dbc.SaveChangesAsync();
 
             return Ok(new { receipt });
-        }     
+        }
+
+        [HttpPut]
+        [Route("/Receipt/IsInterest")]
+        public IActionResult UpdateStatus(int receiptId, bool isInterest)
+        {
+            Receipt existingReceipt = dbc.Receipts.FirstOrDefault(r => r.Id == receiptId);
+
+            if (existingReceipt == null)
+            {
+                return NotFound(new { message = "Không tìm thấy đơn hàng này" });
+            }
+
+            existingReceipt.Interest = isInterest;
+
+            dbc.Receipts.Update(existingReceipt);
+            dbc.SaveChanges();
+            return Ok(new { existingReceipt, message = "Cập nhật thành công" });
+        }
     }
 }

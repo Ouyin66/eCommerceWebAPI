@@ -28,14 +28,14 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("phone")]
         [StringLength(10)]
         public string? Phone { get; set; }
-        [Column("coupon")]
-        public int? Coupon { get; set; }
+        [Column("discount", TypeName = "decimal(18, 2)")]
+        public decimal? Discount { get; set; }
         [Column("total", TypeName = "decimal(18, 2)")]
         public decimal? Total { get; set; }
         [Column("paymentId")]
         public string? PaymentId { get; set; }
         [Column("interest")]
-        public byte? Interest { get; set; }
+        public bool? Interest { get; set; }
         [Column("dateCreate", TypeName = "datetime")]
         public DateTime? DateCreate { get; set; }
 
@@ -52,9 +52,8 @@ namespace eCommerceWebAPI.ModelFromDB
         //[JsonIgnore]
         //public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; }
 
-        [InverseProperty("MyReceipt")]
-        [JsonIgnore]
-        public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; } = new List<OrderStatusHistory>();
+        [InverseProperty(nameof(OrderStatusHistory.MyReceipt))]
+        public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; }
 
         [InverseProperty(nameof(ReceiptVariant.Receipt))]
         public virtual ICollection<ReceiptVariant> ReceiptVariants { get; set; }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace eCommerceWebAPI.ModelFromDB
 {
@@ -23,6 +25,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("image")]
         public string? Image { get; set; }
 
+        [JsonIgnore]
         [InverseProperty(nameof(Variant.Color))]
         public virtual ICollection<Variant> Variants { get; set; }
     }

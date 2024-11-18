@@ -13,7 +13,7 @@ namespace eCommerceWebAPI.ModelFromDB
     public partial class Variant
     {
         public Variant()
-        {
+        {           
             Carts = new HashSet<Cart>();
             Feedbacks = new HashSet<Feedback>();
             ReceiptVariants = new HashSet<ReceiptVariant>();
@@ -38,17 +38,17 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("dateCreate", TypeName = "datetime")]
         public DateTime? DateCreate { get; set; }
 
-        [JsonIgnore]
+        //[JsonIgnore]
         [ForeignKey(nameof(ColorId))]
         [InverseProperty("Variants")]
         public virtual Color? Color { get; set; }
 
-        [JsonIgnore]
+        //[JsonIgnore]
         [ForeignKey(nameof(ProductId))]
         [InverseProperty("Variants")]
         public virtual Product? Product { get; set; }
 
-        [JsonIgnore]
+        //[JsonIgnore]
         [ForeignKey(nameof(SizeId))]
         [InverseProperty("Variants")]
         public virtual Size? Size { get; set; }

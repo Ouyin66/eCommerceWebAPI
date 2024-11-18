@@ -5,6 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace eCommerceWebAPI.ModelFromDB
 {
@@ -14,7 +16,7 @@ namespace eCommerceWebAPI.ModelFromDB
     {
         [Key]
         [Column("id")]
-        public int Id { get; set; }
+        public int? Id { get; set; }
         [Column("receiptID")]
         public int? ReceiptId { get; set; }
         [Column("state")]
@@ -26,6 +28,7 @@ namespace eCommerceWebAPI.ModelFromDB
 
         [ForeignKey(nameof(ReceiptId))]
         [InverseProperty(nameof(Receipt.OrderStatusHistories))]
+        [JsonIgnore]
         public virtual Receipt? MyReceipt { get; set; }
     }
 }
