@@ -75,6 +75,8 @@ namespace eCommerceWebAPI.ModelFromDB
 
             modelBuilder.Entity<Cart>(entity =>
             {
+                entity.HasKey(e => new { e.UserId, e.VariantId });
+
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Carts)
                     .HasForeignKey(d => d.UserId)

@@ -20,7 +20,7 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Product/List")]
         public IActionResult GetList()
         {
-            return Ok(new { dataa = dbc.Products.ToList() });
+            return Ok(new { data = dbc.Products.ToList() });
         }
 
         [HttpGet]

@@ -9,9 +9,6 @@ namespace eCommerceWebAPI.ModelFromDB
     [Table("Cart")]
     public partial class Cart
     {
-        [Key]
-        [Column("id")]
-        public int Id { get; set; }
         [Column("userID")]
         public int? UserId { get; set; }
         [Column("variantID")]

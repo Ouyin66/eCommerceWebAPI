@@ -7,27 +7,27 @@ namespace eCommerceWebAPI.ModelFromDB
     public partial class Notification
     {
         [Key]
-        [Column("Id")]
+        [Column("id")]
         public int? Id { get; set; }
 
-        [Column("UserId")]
+        [Column("userId")]
         public int? UserId { get; set; }
 
-        [Column("Message")]
+        [Column("message")]
         [StringLength(255)]
         public string? Message { get; set; }
 
-        [Column("DateCreated", TypeName = "datetime")]
+        [Column("dateCreated", TypeName = "datetime")]
         public DateTime DateCreated { get; set; }
 
-        [Column("IsRead")]
+        [Column("isRead")]
         public bool? IsRead { get; set; }
 
-        [Column("Type")]
+        [Column("type")]
         [StringLength(50)]
         public string? Type { get; set; }
 
-        [Column("ReferenceId")]
+        [Column("referenceId")]
         public int? ReferenceId { get; set; }
 
         [ForeignKey(nameof(UserId))]

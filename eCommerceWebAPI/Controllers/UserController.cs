@@ -110,7 +110,7 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/User/Register")]
-        public IActionResult Register(string email, string phone, string password, string name)
+        public async Task<IActionResult> Register(string email, string phone, string password, string name)
         {
             var existingUser = dbc.Users.FirstOrDefault(u => u.Email == email);
             if (existingUser != null)
@@ -129,7 +129,21 @@ namespace eCommerceWebAPI.Controllers
             try
             {
                 dbc.Users.Add(user);
-                dbc.SaveChanges();
+                await dbc.SaveChangesAsync();
+
+                Notification notification = new Notification
+                {
+                    UserId = user.Id,
+                    Message = $"Chào mừng bạn đến với UNIQLO, hãy cùng mua sắm thỏa thích nhé!",
+                    Type = "Register",
+                    ReferenceId = null,
+                    DateCreated = DateTime.Now,
+                    IsRead = false,
+                };
+                dbc.Notifications.Add(notification);
+
+                await dbc.SaveChangesAsync();
+
                 return Ok(new { user });
             }
             catch (Exception ex)
@@ -140,7 +154,7 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/User/GoogleSignIn")]
-        public IActionResult GoogleSignIn(string email, string providerID, string displayName, string photoUrl)
+        public async Task<IActionResult> GoogleSignIn(string email, string providerID, string displayName, string photoUrl)
         {
             var existingUser = dbc.Users.FirstOrDefault(u => u.Email == email);
 
@@ -192,7 +206,21 @@ namespace eCommerceWebAPI.Controllers
             try
             {
                 dbc.Users.Add(user);
-                dbc.SaveChanges();
+                await dbc.SaveChangesAsync();
+
+                Notification notification = new Notification
+                {
+                    UserId = user.Id,
+                    Message = $"Chào mừng bạn đến với UNIQLO, hãy cùng mua sắm thỏa thích nhé!",
+                    Type = "Register",
+                    ReferenceId = null,
+                    DateCreated = DateTime.Now,
+                    IsRead = false,
+                };
+                dbc.Notifications.Add(notification);
+
+                await dbc.SaveChangesAsync();
+
                 return Ok(new { user });
             }
             catch (Exception ex)

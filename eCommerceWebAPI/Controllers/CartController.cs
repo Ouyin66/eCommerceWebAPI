@@ -24,9 +24,9 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpGet]
         [Route("/Cart/Get")]
-        public IActionResult GetCart(int id)
+        public IActionResult GetCart(int userId, int variantId)
         {
-            Cart cart = dbc.Carts.FirstOrDefault(c => c.Id == id);
+            Cart cart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
 
             if (cart == null)
             {
@@ -116,14 +116,15 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPut]
         [Route("/Cart/Update")]
-        public IActionResult UpdateCart(int id, int userId, int variantId, int quantity, decimal price)
+        public IActionResult UpdateCart(int userId, int variantId, int quantity, decimal price)
         {
             if (quantity < 0)
             {
                 return BadRequest(new { message = "Số lượng không hợp lệ" });
             }
             // Tìm kiếm sản phẩm trong giỏ hàng
-            Cart searchingCart = dbc.Carts.FirstOrDefault(c => c.Id == id);
+            Cart searchingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
+
             var variant = dbc.Variants.FirstOrDefault(v => v.Id == variantId);
 
             // Kiểm tra tồn tại của sản phẩm và tồn kho
@@ -155,7 +156,7 @@ namespace eCommerceWebAPI.Controllers
                 if (existingCart != null)
                 {
                     var total = quantity + existingCart.Quantity;
-                    if (total <= 3 && total <= variant.Quantity && existingCart.Id != id)
+                    if (total <= 3 && total <= variant.Quantity && existingCart.UserId != userId && existingCart.VariantId != variantId)
                     {
                         existingCart.Quantity = total;
                         dbc.Carts.Remove(searchingCart);
@@ -176,9 +177,9 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpDelete]
         [Route("/Cart/Delete")]
-        public IActionResult DeleteCart(int id)
+        public IActionResult DeleteCart(int userId, int variantId)
         {
-            Cart cart = dbc.Carts.FirstOrDefault(c => c.Id == id);
+            Cart cart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
 
             if (cart == null)
             {

@@ -14,7 +14,7 @@ namespace eCommerceWebAPI.ModelFromDB
         public int Id { get; set; }
         [Column("productID")]
         public int? ProductId { get; set; }
-        [Column("picture")]
+        [Column("image")]
         public string? Image { get; set; }
 
         [ForeignKey(nameof(ProductId))]
