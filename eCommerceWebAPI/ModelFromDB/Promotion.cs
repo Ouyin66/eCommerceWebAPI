@@ -26,7 +26,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [StringLength(100)]
         public string? Name { get; set; }
         [Column("banner")]
-        public string? Banner { get; set; }
+        public byte[]? Banner { get; set; }
         [Column("describe")]
         public string? Describe { get; set; }
         [Column("perDiscount", TypeName = "decimal(5, 2)")]

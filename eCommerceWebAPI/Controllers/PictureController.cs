@@ -42,10 +42,10 @@ namespace eCommerceWebAPI.Controllers
         {
             List<Picture> picutures = dbc.Pictures.Where(p => p.ProductId == productId).ToList();
 
-            if (picutures == null || !picutures.Any())
-            {
-                return NotFound(new { message = "Không tìm thấy sản phẩm biến thể của sản phẩm" });
-            }
+            //if (picutures == null || !picutures.Any())
+            //{
+            //    return NotFound(new { message = "Không tìm thấy sản phẩm biến thể của sản phẩm" });
+            //}
 
             return Ok(new { picutures });
         }
@@ -54,27 +54,39 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Picture/Insert")]
         public IActionResult InsertPicture(int productId, string image)
         {
-            Picture existingPicture = dbc.Pictures.FirstOrDefault(p => p.Image == image);
-
-            if (existingPicture != null)
+            try
             {
-                return BadRequest(new { message = "Đã tồn tại màu này" });
+                byte[] imageBytes = Convert.FromBase64String(image);
+
+                Picture existingPicture = dbc.Pictures.FirstOrDefault(p => p.Image == imageBytes);
+
+                if (existingPicture != null)
+                {
+                    return BadRequest(new { message = "Đã tồn tại màu này" });
+                }
+
+                Picture picture = new Picture();
+                picture.ProductId = productId;
+                picture.Image = imageBytes;
+
+                dbc.Pictures.Add(picture);
+                dbc.SaveChanges();
+                return Ok(new { picture });
             }
-
-            Picture picture = new Picture();
-            picture.ProductId = productId;
-            picture.Image = image;
-
-            dbc.Pictures.Add(picture);
-            dbc.SaveChanges();
-            return Ok(new { picture });
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi hệ thống", details = ex.Message });
+            }
+            
         }
 
         [HttpPut]
         [Route("/Picture/Update")]
         public IActionResult UpdatePicture(int id, int productId, string image)
         {
-            Picture existingPicture = dbc.Pictures.FirstOrDefault(p => p.Image == image);
+            byte[] imageBytes = Convert.FromBase64String(image);
+
+            Picture existingPicture = dbc.Pictures.FirstOrDefault(p => p.Image == imageBytes);
 
             if (existingPicture != null)
             {
@@ -84,7 +96,7 @@ namespace eCommerceWebAPI.Controllers
             Picture picture = new Picture();
             picture.Id = id;
             picture.ProductId = productId;
-            picture.Image = image;
+            picture.Image = imageBytes;
 
             dbc.Pictures.Update(picture);
             dbc.SaveChanges();

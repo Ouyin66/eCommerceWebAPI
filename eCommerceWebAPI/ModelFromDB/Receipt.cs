@@ -22,6 +22,9 @@ namespace eCommerceWebAPI.ModelFromDB
         public int? Id { get; set; }
         [Column("userID")]
         public int? UserId { get; set; }
+        [Column("name")]
+        [StringLength(100)]
+        public string? Name { get; set; }
         [Column("address")]
         [StringLength(255)]
         public string? Address { get; set; }
@@ -53,7 +56,7 @@ namespace eCommerceWebAPI.ModelFromDB
         //public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; }
 
         [InverseProperty(nameof(OrderStatusHistory.MyReceipt))]
-        public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; }
+        public virtual ICollection<OrderStatusHistory>? OrderStatusHistories { get; set; }
 
         [InverseProperty(nameof(ReceiptVariant.Receipt))]
         public virtual ICollection<ReceiptVariant> ReceiptVariants { get; set; }

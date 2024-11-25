@@ -70,61 +70,69 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/Product/Insert")]
-        public IActionResult InsertProduct(int gender, int category, string name, string describe, int price, byte state)
+        public IActionResult InsertProduct([FromBody] Product product)
         {
-            Product existingProduct = dbc.Products.FirstOrDefault(p => p.NamePro == name);
-
-            if (existingProduct != null)
+            try
             {
-                return BadRequest(new { message = "Đã tồn tại sản phẩm này" });
+                Product existingProduct = dbc.Products.FirstOrDefault(p => p.NamePro == product.NamePro);
+
+                if (existingProduct != null)
+                {
+                    return BadRequest(new { message = "Đã tồn tại sản phẩm này" });
+                }
+
+                if (!product.DateCreate.HasValue)
+                {
+                    product.DateCreate = DateTime.Now;
+                }
+
+                product.Pictures = null;
+
+                dbc.Products.Add(product);
+                dbc.SaveChanges();
+                return Ok(new { product });
             }
-
-            Product product = new Product()
+            catch (Exception ex)
             {
-                GenderId = gender,
-                CategoryId = category,
-                NamePro = name,
-                Describe = describe,
-                Discount = 0,
-                Price = price,
-                Amount = 0,
-                State = state,
-                DateCreate = DateTime.Now,
-            };
-
-            dbc.Products.Add(product);
-            dbc.SaveChanges();
-            return Ok(new { product });
+                return BadRequest(new { message = ex.Message});
+            }
         }
 
         [HttpPut]
         [Route("/Product/Update")]
-        public IActionResult UpdateProduct(int id, int gender, int category, string name, string describe, int price, byte state)
+        public IActionResult UpdateProduct([FromBody] Product product)
         {
-            Product product = dbc.Products.FirstOrDefault(p => p.Id == id);
-
-            if (product == null)
+            try
             {
-                return NotFound(new { message = "Không tìm thấy sản phẩm này" });
+                var productCheck = dbc.Products.FirstOrDefault(p => p.Id == product.Id);
+
+                if (productCheck == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy sản phẩm này" });
+                }
+
+                Product existingProduct = dbc.Products.FirstOrDefault(p => p.NamePro == product.NamePro && p.Id != product.Id);
+                if (existingProduct != null)
+                {
+                    return BadRequest(new { message = "Tên sản phẩm đã tồn tại" });
+                }
+
+                productCheck.CategoryId = product.CategoryId ?? productCheck.CategoryId;
+                productCheck.GenderId = product.GenderId ?? productCheck.GenderId;
+                productCheck.NamePro = product.NamePro ?? productCheck.NamePro;
+                productCheck.Describe = product.Describe ?? productCheck.Describe;
+                productCheck.Price = product.Price ?? productCheck.Price;
+                productCheck.Discount = product.Discount ?? productCheck.Discount;
+                productCheck.State = product.State ?? productCheck.State;
+
+                dbc.Products.Update(productCheck);
+                dbc.SaveChanges();
+                return Ok(new { product });
             }
-
-            Product existingProduct = dbc.Products.FirstOrDefault(p => p.NamePro == name && p.Id != id);
-            if (existingProduct != null)
-            {
-                return BadRequest(new { message = "Tên sản phẩm đã tồn tại" });
+            catch (Exception ex) {
+                return StatusCode(500, new { message = "Lỗi hệ thống", details = ex.Message });
             }
-
-            product.GenderId = gender;
-            product.CategoryId = category;
-            product.NamePro = name ?? product.NamePro;
-            product.Describe = describe ?? product.Describe;
-            product.Price = price != 0 ? price : product.Price;
-            product.State = state;
-            product.DateCreate = DateTime.Now;
-
-            dbc.Products.Update(product);
-            dbc.SaveChanges();
-            return Ok(new { product });
+            
         }
 
         [HttpDelete]

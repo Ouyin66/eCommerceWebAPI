@@ -64,7 +64,9 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Color/Insert")]
         public IActionResult InsertColor(string name, string image)
         {
-            Color existingColor = dbc.Colors.FirstOrDefault(c => c.Name == name);
+            byte[] imageBytes = Convert.FromBase64String(image);
+
+            Color existingColor = dbc.Colors.FirstOrDefault(c => c.Name == name && c.Image == imageBytes);
 
             if (existingColor != null)
             {
@@ -73,7 +75,7 @@ namespace eCommerceWebAPI.Controllers
 
             Color color = new Color();
             color.Name = name;
-            color.Image = image;
+            color.Image = imageBytes;
 
             dbc.Colors.Add(color);
             dbc.SaveChanges();
@@ -84,7 +86,9 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Color/Update")]
         public IActionResult UpdateColor(int id, string name, string image)
         {
-            Color existingColor = dbc.Colors.FirstOrDefault(c => c.Name == name);
+            byte[] imageBytes = Convert.FromBase64String(image);
+
+            Color existingColor = dbc.Colors.FirstOrDefault(c => c.Name == name && c.Image == imageBytes);
 
             if (existingColor != null)
             {
@@ -94,7 +98,7 @@ namespace eCommerceWebAPI.Controllers
             Color color = new Color();
             color.Id = id;
             color.Name = name;
-            color.Image = image;
+            color.Image = imageBytes;
 
             dbc.Colors.Update(color);
             dbc.SaveChanges();

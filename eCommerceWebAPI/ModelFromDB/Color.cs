@@ -23,7 +23,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [StringLength(50)]
         public string? Name { get; set; }
         [Column("image")]
-        public string? Image { get; set; }
+        public byte[]? Image { get; set; }
 
         [JsonIgnore]
         [InverseProperty(nameof(Variant.Color))]

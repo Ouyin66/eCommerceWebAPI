@@ -16,10 +16,12 @@ namespace eCommerceWebAPI.Controllers
     public class UserController : ControllerBase
     {
         ECOMMERCE dbc;
+        private readonly ImageHelper _imageHelper;
 
         public UserController(ECOMMERCE db)
         {
             dbc = db;
+            _imageHelper = new ImageHelper();
         }
 
         [HttpGet]
@@ -125,6 +127,7 @@ namespace eCommerceWebAPI.Controllers
             //user.Password = HashPassword(password);
             user.Password = password;
             user.Role = 1;
+            user.State = 1;
             user.DateCreate = DateTime.Now;
             try
             {
@@ -156,6 +159,8 @@ namespace eCommerceWebAPI.Controllers
         [Route("/User/GoogleSignIn")]
         public async Task<IActionResult> GoogleSignIn(string email, string providerID, string displayName, string photoUrl)
         {
+            byte[] imageBytes;
+
             var existingUser = dbc.Users.FirstOrDefault(u => u.Email == email);
 
             if (existingUser != null)
@@ -171,7 +176,8 @@ namespace eCommerceWebAPI.Controllers
 
                     if (!string.IsNullOrEmpty(photoUrl))
                     {
-                        existingUser.Image = photoUrl;
+                        imageBytes = await _imageHelper.DownloadImageAsByteArray(photoUrl);
+                        existingUser.Image = imageBytes;
                     }
 
                     try
@@ -191,14 +197,17 @@ namespace eCommerceWebAPI.Controllers
                 }
             }
 
+            imageBytes = await _imageHelper.DownloadImageAsByteArray(photoUrl);
             // Nếu email chưa tồn tại, tạo một người dùng mới
             User user = new User
             {
+
                 Name = displayName,
                 Email = email,
-                Image = photoUrl,
+                Image = imageBytes ?? null,
                 ProviderId = providerID,
                 Role = 1,
+                State = 1,
                 Password = GenerateRandomPassword(), // Tạo mật khẩu ngẫu nhiên
                 DateCreate = DateTime.Now,
             };
@@ -255,8 +264,8 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/User/Insert")]
-        public IActionResult InsertUser(int id, string email, string password, string name, string phone, string image, byte gender, byte role, byte state)
-        {
+        public IActionResult InsertUser(int id, string email, string password, string name, string phone, string? image, byte gender, byte role, byte state)
+        {                     
             // Kiểm tra xem email đã tồn tại hay chưa
             if (dbc.Users.Any(u => u.Email == email))
             {
@@ -269,7 +278,7 @@ namespace eCommerceWebAPI.Controllers
                 Email = email,
                 Password = password,
                 Phone = phone,
-                Image = image,
+                Image = image != null ? Convert.FromBase64String(image) : null,
                 Gender = gender,
                 Role = role,
                 State = state,
@@ -327,7 +336,7 @@ namespace eCommerceWebAPI.Controllers
             // Cập nhật các thông tin của người dùng
             user.Name = name ?? user.Name;
             user.Phone = phone ?? user.Phone;
-            user.Image = image ?? user.Image;
+            user.Image = Convert.FromBase64String(image) ?? user.Image;
             user.Gender = gender ?? null;
 
             // Lưu thay đổi
@@ -366,7 +375,7 @@ namespace eCommerceWebAPI.Controllers
             user.Name = name ?? user.Name;
             user.Password = password ?? user.Password;
             user.Phone = phone ?? user.Phone;
-            user.Image = image ?? user.Image;
+            user.Image = Convert.FromBase64String(image) ?? user.Image;
             user.Gender = gender;
             user.Role = role;
             user.State = state;
@@ -448,6 +457,32 @@ namespace eCommerceWebAPI.Controllers
             })
             {
                 smtp.Send(message);
+            }
+        }
+    }
+
+    public class ImageHelper
+    {
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        public async Task<byte[]> DownloadImageAsByteArray(string imageUrl)
+        {
+            try
+            {
+                // Gửi yêu cầu GET đến URL của hình ảnh
+                HttpResponseMessage response = await _httpClient.GetAsync(imageUrl);
+
+                // Kiểm tra xem phản hồi có thành công không
+                response.EnsureSuccessStatusCode();
+
+                // Đọc nội dung và chuyển thành byte[]
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi nếu cần thiết
+                Console.WriteLine($"Error downloading image: {ex.Message}");
+                return null;
             }
         }
     }

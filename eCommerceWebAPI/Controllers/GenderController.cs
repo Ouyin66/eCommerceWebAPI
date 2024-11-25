@@ -19,7 +19,7 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Gender/List")]
         public IActionResult GetList() 
         {
-            return Ok(new {dataa= dbc.Genders.ToList() });
+            return Ok(new {dataa = dbc.Genders.ToList() });
         }
 
         [HttpGet]

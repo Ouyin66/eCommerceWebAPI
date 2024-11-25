@@ -25,6 +25,29 @@ namespace eCommerceWebAPI.Controllers
         }
 
         [HttpPost]
+        [Route("/OrderStatusHistory/Cancel")]
+        public IActionResult CancelReceipt(int receiptId)
+        {
+
+            OrderStatusHistory cancelStatus = dbc.OrderStatusHistories.FirstOrDefault(s => s.ReceiptId == receiptId);
+
+            if (cancelStatus != null)
+            {
+                return BadRequest(new { message = "Đã hủy đơn hàng này" });
+            }
+
+            OrderStatusHistory orderStatusHistory = new OrderStatusHistory();
+            orderStatusHistory.ReceiptId = receiptId;
+            orderStatusHistory.State = 0;
+            orderStatusHistory.Notes = "Khách hàng hủy đơn";
+            orderStatusHistory.TimeStamp = DateTime.Now;
+
+            dbc.OrderStatusHistories.Add(orderStatusHistory);
+            dbc.SaveChanges();
+            return Ok(new { orderStatusHistory });
+        }
+
+        [HttpPost]
         [Route("/OrderStatusHistory/InsertStatus")]
         public IActionResult InsertStatus(int receiptId, int state, string notes)
         {
@@ -67,6 +90,23 @@ namespace eCommerceWebAPI.Controllers
             dbc.OrderStatusHistories.Update(orderStatusHistory);
             dbc.SaveChanges();
             return Ok(new { orderStatusHistory });          
+        }
+
+        [HttpDelete]
+        [Route("/OrderStatusHistory/Delete")]
+        public IActionResult DeleteSize(int id)
+        {
+            OrderStatusHistory orderStatus = dbc.OrderStatusHistories.FirstOrDefault(s => s.Id == id);
+
+            if (orderStatus == null)
+            {
+                return NotFound(new { message = "Không tìm thấy trạng thái với id này" });
+            }
+
+            dbc.OrderStatusHistories.Remove(orderStatus);
+            dbc.SaveChanges();
+
+            return Ok(new { message = "Xóa thành công", orderStatus });
         }
     }
 }

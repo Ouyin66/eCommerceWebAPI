@@ -116,63 +116,98 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPut]
         [Route("/Cart/Update")]
-        public IActionResult UpdateCart(int userId, int variantId, int quantity, decimal price)
+        public IActionResult UpdateCart(int userId, int oldVariantId, int variantId, int quantity, decimal price)
         {
-            if (quantity < 0)
+            // Kiểm tra số lượng có hợp lệ không
+            if (quantity <= 0)
             {
                 return BadRequest(new { message = "Số lượng không hợp lệ" });
             }
-            // Tìm kiếm sản phẩm trong giỏ hàng
-            Cart searchingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
 
-            var variant = dbc.Variants.FirstOrDefault(v => v.Id == variantId);
-
-            // Kiểm tra tồn tại của sản phẩm và tồn kho
-            if (searchingCart == null)
+            // Lấy sản phẩm trong giỏ hàng hiện tại
+            var currentCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == oldVariantId);
+            if (currentCart == null)
             {
                 return BadRequest(new { message = "Sản phẩm không tồn tại trong giỏ hàng" });
             }
-            if (variant == null || variant.Quantity == 0)
+
+            // Lấy thông tin của sản phẩm mới
+            var newVariant = dbc.Variants.FirstOrDefault(v => v.Id == variantId);
+            if (newVariant == null || newVariant.Quantity <= 0)
             {
                 return BadRequest(new { message = "Sản phẩm đã hết hàng" });
             }
 
-            var inventory = variant.Quantity;
-
-            // Kiểm tra giới hạn số lượng và tồn kho
-            if (quantity > 3)
-            {
-                return BadRequest(new { message = "Sản phẩm đã đạt số lượng tối đa trong giỏ hàng" });
-            }
-            else if (quantity > inventory)
+            // Kiểm tra tồn kho của sản phẩm mới
+            if (quantity > newVariant.Quantity)
             {
                 return BadRequest(new { message = "Số lượng yêu cầu vượt quá hàng trong kho" });
             }
 
-            if (searchingCart.VariantId != variantId)
+            // Trường hợp thay đổi sang sản phẩm mới
+            if (currentCart.VariantId != variantId)
             {
+                // Kiểm tra xem giỏ hàng đã có sản phẩm mới này chưa
                 var existingCart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId);
-
                 if (existingCart != null)
                 {
-                    var total = quantity + existingCart.Quantity;
-                    if (total <= 3 && total <= variant.Quantity && existingCart.UserId != userId && existingCart.VariantId != variantId)
-                    {
-                        existingCart.Quantity = total;
-                        dbc.Carts.Remove(searchingCart);
-                        dbc.SaveChanges();
-                        return Ok(new { message = "Cập nhật thành công", cart = existingCart });
-                    }
-                }
-            }          
+                    // Cộng dồn số lượng nếu giỏ hàng đã có sản phẩm
+                    int totalQuantity = (int)(existingCart.Quantity + quantity);
 
-            // Cập nhật số lượng và giá
-            searchingCart.VariantId = variantId;
-            searchingCart.Quantity = quantity;
-            searchingCart.Price = price; // Cập nhật giá nếu cần
+                    // Kiểm tra tồn kho
+                    if (totalQuantity > newVariant.Quantity)
+                    {
+                        return BadRequest(new { message = "Số lượng tổng vượt quá tồn kho" });
+                    }
+
+                    // Cập nhật số lượng của sản phẩm mới
+                    existingCart.Quantity = totalQuantity;
+
+                    // Xóa sản phẩm cũ khỏi giỏ hàng
+                    dbc.Carts.Remove(currentCart);
+                }
+                else
+                {
+                    // Xóa sản phẩm cũ khỏi giỏ hàng trước
+                    dbc.Carts.Remove(currentCart);
+
+                    // Thêm sản phẩm mới vào giỏ hàng
+                    var newCart = new Cart
+                    {
+                        UserId = userId,
+                        VariantId = variantId,
+                        Quantity = quantity,
+                        Price = price
+                    };
+
+                    // Thêm giỏ hàng mới
+                    dbc.Carts.Add(newCart);
+                }
+            }
+            else
+            {
+                // Trường hợp không thay đổi sản phẩm, chỉ cập nhật số lượng
+                if (quantity > newVariant.Quantity)
+                {
+                    return BadRequest(new { message = "Số lượng vượt quá hàng tồn kho" });
+                }
+
+                currentCart.Quantity = quantity;
+
+                // Cập nhật đối tượng currentCart trong context
+                dbc.Carts.Update(currentCart);
+            }
+
+            // Lưu các thay đổi
             dbc.SaveChanges();
 
-            return Ok(new { message = "Cập nhật thành công", cart = searchingCart });
+            // Trả về phản hồi thành công
+            return Ok(new
+            {
+                message = "Cập nhật thành công",
+                cart = dbc.Carts.FirstOrDefault(c => c.UserId == userId && c.VariantId == variantId),
+            });
+
         }
 
         [HttpDelete]

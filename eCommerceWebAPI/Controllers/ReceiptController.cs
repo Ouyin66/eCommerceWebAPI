@@ -17,6 +17,35 @@ namespace eCommerceWebAPI.Controllers
         }
 
         [HttpGet]
+        [Route("/Receipt/GetList")]
+        public IActionResult GetList()
+        {
+            List<Receipt> receipts = dbc.Receipts.OrderByDescending(r => r.DateCreate).ToList();
+
+            foreach (var receipt in receipts)
+            {
+                List<ReceiptVariant> lstVariant = dbc.ReceiptVariants.Where(v => v.ReceiptId == receipt.Id).ToList();
+                receipt.ReceiptVariants = lstVariant;
+
+                List<OrderStatusHistory> lstStatus = dbc.OrderStatusHistories.Where(s => s.ReceiptId == receipt.Id).ToList();
+
+                // Nếu tồn tại trạng thái hủy đơn hàng thì ưu tiên lấy trạng thái này
+                if (lstStatus.Any(s => s.State == 0))
+                {
+                    lstStatus = lstStatus.Where(s => s.State == 0).ToList();
+                }
+                else
+                {
+                    var maxState = lstStatus.Max(s => s.State);
+                    lstStatus = lstStatus.Where(s => s.State == maxState).ToList();
+                }
+                receipt.OrderStatusHistories = lstStatus;
+            }
+
+            return Ok(new { receipts });
+        }
+
+        [HttpGet]
         [Route("/Receipt/ListByUserId")]
         public IActionResult GetReceiptnByUserId(int userId)
         {
@@ -33,7 +62,7 @@ namespace eCommerceWebAPI.Controllers
                 List<OrderStatusHistory> lstStatus = dbc.OrderStatusHistories.Where(s => s.ReceiptId == receipt.Id).ToList();
                 
                 // Nếu tồn tại trạng thái hủy đơn hàng thì ưu tiên lấy trạng thái này
-                if (lstStatus.Where(s => s.State == 0) != null)
+                if (lstStatus.Any(s => s.State == 0))
                 {
                     lstStatus = lstStatus.Where(s => s.State == 0).ToList();
                 } else
@@ -71,16 +100,18 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Receipt/Insert")]
         public async Task<IActionResult> CreateReceiptWithVariants([FromBody] Receipt receipt)
         {
-            if (receipt == null) return BadRequest("Invalid data.");
+            if (receipt == null) return BadRequest("Dữ liệu không hợp lệ");
             if (receipt.ReceiptVariants == null || !receipt.ReceiptVariants.Any())
             {
-                return BadRequest("Receipt must have at least one variant.");
+                return BadRequest("Hóa đơn phải có ít nhất một sản phẩm.");
             }
 
             if (!receipt.DateCreate.HasValue)
             {
                 receipt.DateCreate = DateTime.Now;
             }
+
+            receipt.OrderStatusHistories = null;
 
             dbc.Receipts.Add(receipt);
 

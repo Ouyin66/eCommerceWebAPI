@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace eCommerceWebAPI.Controllers
 {
@@ -70,35 +71,30 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPost]
         [Route("/Promotion/Insert")]
-        public IActionResult InsertPromotion(string? name, string? code, string? describe, decimal? perDiscount, string? startDate, string? endDate, string? banner)
+        public IActionResult InsertPromotion([FromBody] Promotion promotion)
         {
             // Định dạng ngày giờ bạn mong muốn: "dd/MM/yyyy"
             string dateFormat = "dd/MM/yyyy";
-            if (!DateTime.TryParseExact(startDate, dateFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedStartDate) ||
-                !DateTime.TryParseExact(endDate, dateFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedEndDate))
+            if (!DateTime.TryParseExact(promotion.StartDate.ToString(), dateFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedStartDate) ||
+                !DateTime.TryParseExact(promotion.EndDate.ToString(), dateFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedEndDate))
             {
                 return BadRequest(new { message = "Định dạng ngày giờ không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" });
             }
 
             // Kiểm tra khuyến mãi đã tồn tại
-            Promotion existingPromotion = dbc.Promotions.FirstOrDefault(p => p.Name == name || p.Code == code);
+            Promotion existingPromotion = dbc.Promotions.FirstOrDefault(p => p.Name == promotion.Name || p.Code == promotion.Code);
             if (existingPromotion != null)
             {
                 return BadRequest(new { message = "Đã tồn tại khuyến mãi này" });
             }
 
-            // Tạo khuyến mãi mới
-            Promotion promotion = new Promotion()
+            if (!promotion.DateCreate.HasValue)
             {
-                Name = name,
-                Code = code,
-                Banner = banner,
-                Describe = describe,
-                PerDiscount = perDiscount,
-                StartDate = parsedStartDate,
-                EndDate = parsedEndDate,
-                DateCreate = DateTime.Now,
-            };
+                promotion.DateCreate = DateTime.Now;
+            }
+            
+            promotion.StartDate = parsedEndDate;
+            promotion.EndDate = parsedStartDate;
 
             dbc.Promotions.Add(promotion);
             dbc.SaveChanges();
@@ -250,6 +246,8 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Promotion/Update")]
         public IActionResult UpdatePromotion(int id, string? name, string? code, string? describe, decimal? perDiscount, string? startDate, string? endDate, string? banner)
         {
+            byte[] imageBytes = Convert.FromBase64String(banner);
+
             // Tìm bản ghi hiện tại
             Promotion existingPromotion = dbc.Promotions.FirstOrDefault(p => p.Id == id);
 
@@ -288,7 +286,7 @@ namespace eCommerceWebAPI.Controllers
             existingPromotion.PerDiscount = perDiscount ?? existingPromotion.PerDiscount;
             if (!string.IsNullOrEmpty(startDate)) existingPromotion.StartDate = DateTime.ParseExact(startDate, dateFormat, null);
             if (!string.IsNullOrEmpty(endDate)) existingPromotion.EndDate = DateTime.ParseExact(endDate, dateFormat, null);
-            existingPromotion.Banner = banner ?? existingPromotion.Banner;
+            existingPromotion.Banner = imageBytes ?? existingPromotion.Banner;
 
             // Lưu thay đổi
             dbc.Promotions.Update(existingPromotion);

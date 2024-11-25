@@ -1,6 +1,7 @@
 ﻿using eCommerceWebAPI.ModelFromDB;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace eCommerceWebAPI.Controllers
 {
@@ -48,10 +49,10 @@ namespace eCommerceWebAPI.Controllers
         {
             List<Variant> variants = dbc.Variants.Where(v => v.ProductId == productId).ToList();
 
-            if (variants == null || !variants.Any())
-            {
-                return NotFound(new { message = "Không tìm thấy sản phẩm biến thể của sản phẩm" });
-            }
+            //if (variants == null || !variants.Any())
+            //{
+            //    return NotFound(new { message = "Không tìm thấy sản phẩm biến thể của sản phẩm" });
+            //}
 
             return Ok(new { variants });
         }
@@ -60,6 +61,8 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Variant/Insert")]
         public IActionResult InsertVariant(int product, int color, int? size, string picture, int quantity)
         {
+            byte[] imageBytes = Convert.FromBase64String(picture);
+
             // Kiểm tra sự tồn tại của sản phẩm
             Product myProduct = dbc.Products.FirstOrDefault(p => p.Id == product);
             if (myProduct == null)
@@ -80,7 +83,7 @@ namespace eCommerceWebAPI.Controllers
                 ProductId = product,
                 ColorId = color,
                 SizeId = size,
-                Picture = picture,
+                Picture = imageBytes,
                 Price = myProduct.Price,
                 Quantity = quantity,
                 DateCreate = DateTime.Now,
@@ -94,7 +97,10 @@ namespace eCommerceWebAPI.Controllers
 
             // Cập nhật số lượng sản phẩm
             myProduct.Amount += quantity;
-
+            if (myProduct.State == 0)
+            {
+                myProduct.State = 1;
+            }
             // Thêm Variant mới và cập nhật sản phẩm
             dbc.Variants.Add(variant);
             dbc.Products.Update(myProduct);
@@ -110,8 +116,10 @@ namespace eCommerceWebAPI.Controllers
 
         [HttpPut]
         [Route("/Variant/Update")]
-        public IActionResult UpdateVariant(int id, int product, int color, int? size, string picture, int price, int quantity)
+        public IActionResult UpdateVariant(int id, int product, int color, int? size, string picture, decimal price, int quantity)
         {
+            byte[] imageBytes = Convert.FromBase64String(picture);
+
             Variant variant = dbc.Variants.FirstOrDefault(v => v.Id == id);
 
             if (variant == null)
@@ -128,7 +136,7 @@ namespace eCommerceWebAPI.Controllers
             variant.ProductId = product;
             variant.ColorId = color;
             variant.SizeId = size;
-            variant.Picture = picture ?? variant.Picture;
+            variant.Picture = imageBytes ?? variant.Picture;
             variant.Price = price != 0 ? price : variant.Price;
 
             if (variant.Quantity != quantity) {
@@ -150,10 +158,15 @@ namespace eCommerceWebAPI.Controllers
             };
 
             dbc.Variants.Update(variant);
+
             var existingPicture = dbc.Pictures.FirstOrDefault(p => p.Image == addPicture.Image && p.ProductId == addPicture.ProductId);
             if (existingPicture == null)
             {              
                 dbc.Pictures.Add(addPicture);
+            } else
+            {
+                existingPicture.Image = addPicture.Image;
+                dbc.Pictures.Update(existingPicture);
             }
             dbc.SaveChanges();
             return Ok(new { variant });

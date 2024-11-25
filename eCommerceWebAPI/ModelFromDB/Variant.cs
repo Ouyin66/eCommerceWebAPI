@@ -25,8 +25,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("productID")]
         public int? ProductId { get; set; }
         [Column("picture")]
-        [MaxLength]
-        public string? Picture { get; set; }
+        public byte[]? Picture { get; set; }
         [Column("colorID")]
         public int? ColorId { get; set; }
         [Column("sizeID")]

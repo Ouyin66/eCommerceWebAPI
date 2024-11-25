@@ -15,7 +15,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("productID")]
         public int? ProductId { get; set; }
         [Column("image")]
-        public string? Image { get; set; }
+        public byte[]? Image { get; set; }
 
         [ForeignKey(nameof(ProductId))]
         [InverseProperty("Pictures")]

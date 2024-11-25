@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace eCommerceWebAPI.ModelFromDB
 {
@@ -38,7 +39,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("defaultLocationId")]
         public int? DefaultLocationId { get; set; }
         [Column("image")]
-        public string? Image { get; set; }
+        public byte[]? Image { get; set; }
         [Column("gender")]
         public byte? Gender { get; set; }
         [Column("role")]
@@ -51,14 +52,23 @@ namespace eCommerceWebAPI.ModelFromDB
         [Column("dateCreate", TypeName = "datetime")]
         public DateTime? DateCreate { get; set; }
 
+        [JsonIgnore]
         [InverseProperty(nameof(Cart.User))]
         public virtual ICollection<Cart> Carts { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(Chat.User))]
         public virtual ICollection<Chat> Chats { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(Messenger.User))]
         public virtual ICollection<Messenger> Messengers { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(Receipt.User))]
         public virtual ICollection<Receipt> Receipts { get; set; }
+
+        [JsonIgnore]
         [InverseProperty(nameof(Location.User))]
         public virtual ICollection<Location> Locations { get; set; }
 
@@ -68,6 +78,7 @@ namespace eCommerceWebAPI.ModelFromDB
         [InverseProperty(nameof(Product.Users))]
         public virtual ICollection<Product> Products { get; set; }
 
+        [JsonIgnore]
         [InverseProperty(nameof(Notification.MyUser))]
         public virtual ICollection<Notification> Notifications { get; set; }
     }

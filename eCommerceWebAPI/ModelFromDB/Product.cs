@@ -52,7 +52,9 @@ namespace eCommerceWebAPI.ModelFromDB
         [InverseProperty("Products")]
         [JsonIgnore]
         public virtual Gender? Gender { get; set; }
+
         [InverseProperty(nameof(Picture.Product))]
+        [JsonIgnore]
         public virtual ICollection<Picture> Pictures { get; set; }
 
         [JsonIgnore]
