@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace eCommerceWebAPI.ModelFromDB
 {
     [Table("Promotion")]
-    [Index(nameof(Code), Name = "UQ__Promotio__357D4CF9E14F211F", IsUnique = true)]
+    //[Index(nameof(Code), Name = "UQ__Promotio__357D4CF9E14F211F", IsUnique = true)]
     [Index(nameof(Name), Name = "UQ__Promotio__72E12F1B31B4B4AE", IsUnique = true)]
     public partial class Promotion
     {
@@ -40,6 +40,6 @@ namespace eCommerceWebAPI.ModelFromDB
 
         [ForeignKey("PromotionId")]
         [InverseProperty(nameof(Product.Promotions))]
-        public virtual ICollection<Product> Products { get; set; }
+        public virtual ICollection<Product>? Products { get; set; }
     }
 }

@@ -91,6 +91,17 @@ namespace eCommerceWebAPI.Controllers
             receipt.ReceiptVariants = lstVariant;
 
             List<OrderStatusHistory> lstStatus = dbc.OrderStatusHistories.Where(s => s.ReceiptId == receipt.Id).ToList();
+
+            // Nếu tồn tại trạng thái hủy đơn hàng thì ưu tiên lấy trạng thái này
+            if (lstStatus.Any(s => s.State == 0))
+            {
+                lstStatus = lstStatus.Where(s => s.State == 0).ToList();
+            }
+            else
+            {
+                var maxState = lstStatus.Max(s => s.State);
+                lstStatus = lstStatus.Where(s => s.State == maxState).ToList();
+            }
             receipt.OrderStatusHistories = lstStatus;
 
             return Ok(new { receipt });

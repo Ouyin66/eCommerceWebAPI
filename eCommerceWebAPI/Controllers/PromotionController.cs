@@ -95,6 +95,7 @@ namespace eCommerceWebAPI.Controllers
             
             promotion.StartDate = parsedEndDate;
             promotion.EndDate = parsedStartDate;
+            promotion.Products = null;
 
             dbc.Promotions.Add(promotion);
             dbc.SaveChanges();

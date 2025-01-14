@@ -54,7 +54,7 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Location/Insert")]
         public IActionResult InsertLocation(int userId,string name, string address)
         {
-            Location existingName = dbc.Locations.FirstOrDefault(l => l.Name == name);
+            Location existingName = dbc.Locations.FirstOrDefault(l => l.Name == name && l.UserId == userId);
 
             if (existingName != null)
             {
@@ -106,14 +106,14 @@ namespace eCommerceWebAPI.Controllers
         [Route("/Location/Update")]
         public IActionResult UpdateLocation(int id, string name, string address)
         {
-            Location existingName = dbc.Locations.FirstOrDefault(l => l.Name == name);
+            Location existingName = dbc.Locations.FirstOrDefault(l => l.Name == name && l.UserId == l.UserId);
 
             if (existingName != null && existingName.Id != id)
             {
                 return BadRequest(new { errorName = "Đã tồn tại tên của địa chỉ này" });
             }
 
-            Location existingAddress = dbc.Locations.FirstOrDefault(l => l.Address == address);
+            Location existingAddress = dbc.Locations.FirstOrDefault(l => l.Address == address && l.UserId == l.UserId);
 
             if (existingAddress != null && existingAddress.Id != id)
             {
